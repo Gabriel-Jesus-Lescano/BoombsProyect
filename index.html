@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="js/pixi.min.js"></script>
+    <script type='text/javascript' src='//cdn.jsdelivr.net/npm/pixi.js@5.2.0/dist/pixi.min.js?ver=5.3.2'></script>
+    <link rel="shortcut icon" href=""></link>
+    <script src="./js/app.js"></script>
+
+    <style>
+      *{
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+
+    
+  </head>
+<body>
+    
+
+  <script>
+
+    //PublicUses
+    var bombs=0;
+    let allBombs= [];
+    let allPosBomb = [];
+    var minesToInst=0;
+
+    let app;
+    
+    window.onload = function(){
+      app = new PIXI.Application({
+        width: 500,
+        height:500,
+        backgroundColor: 0xAAAAAA,
+        transparent : false,
+        antialias: false
+      });
+      document.body.appendChild(app.view);
+
+        //Load.JSON sprtsht
+      const loader = PIXI.Loader.shared;  
+      loader.add('tileset','./images/spritesheet.json');
+
+        //Add Background
+      const backgroundT = PIXI.Texture.from("./images/background.png");
+      const backgroundS = new PIXI.Sprite(backgroundT);
+      app.stage.addChild(backgroundS);
+      backgroundS.position.set(250,250);
+      backgroundS.scale.set(1.5, 1.5);
+      backgroundS.anchor.x = .5;backgroundS.anchor.y = .5;
+  
+        //Style4Txt
+      const style = new PIXI.TextStyle({
+        fontFamily: 'Arial',
+        fontSize: 36,
+        fontStyle: 'normal',
+        fontVariant: "small-caps",
+        fontWeight: 800,
+        fill: ['#ffffff', '#00ff99'], // gradient
+        stroke: '#4a1850',
+        strokeThickness: 5,
+        dropShadow: true,
+        dropShadowColor: '#000000',
+        dropShadowBlur: 4,
+        dropShadowAngle: Math.PI / 6,
+        dropShadowDistance: 6,
+        wordWrap: true,
+        wordWrapWidth: 440,
+      });
+
+        //Txt
+      const myText = new PIXI.Text('START AGAIN', style);
+      myText.anchor.x = .5;myText.anchor.y = .5;
+      myText.x = 250;
+      myText.y = 475;
+      myText.interactive = true;
+      myText.cursor = 'pointer';
+      
+
+      generateBombs();      //---START-POINT
+
+
+
+
+        //BombsGen
+      function generateBombs(){
+        var newPoint = generateCoor();
+        addBombPos(newPoint);
+        minesToInst = Math.floor(Math.random() * (11 - 5)) + 5;
+
+        for(let i = 1; i< minesToInst; i++){
+          var isColliding = true;
+
+          while (isColliding) {  
+            isColliding=false;
+            var newPoint = generateCoor();
+
+            for(let f = 0; f< allPosBomb.length; f++){ 
+              d = distancia(newPoint,allPosBomb[f]);
+
+              if(d<80){
+                isColliding=true;
+                break;
+              }
+            }
+            if(!isColliding)
+              addBombPos(newPoint)
+          }
+        }
+      }
+
+        //AddBombsPos
+      function addBombPos(newPoint){
+          let pos ={
+            x:newPoint.x,
+            y:newPoint.y
+          }
+          allPosBomb.unshift(pos);
+          bombs++;
+          if(bombs == minesToInst)
+            loader.load(setup);
+        }
+
+        //ANIM
+      function setup(){
+        const textures = [];
+        for(let i = 10; i< 50; i++){
+            const texture = PIXI.Texture.from(`tile0${i}.png`)
+            textures.push(texture);
+        }
+        //Set all bomb properti
+        for (var i = 0; i < minesToInst; ++i) {
+          var boomi = new PIXI.AnimatedSprite(textures);
+          allBombs.push(boomi);
+          allBombs[i].position.set(allPosBomb[i].x , allPosBomb[i].y );
+          app.stage.addChild(allBombs[i]);
+          allBombs[i].scale.set(1, 1);
+          allBombs[i].anchor.x = 0.5;allBombs[i].anchor.y = 0.5;
+          allBombs[i].animationSpeed = .25;
+          allBombs[i].loop= false;
+          allBombs[i].loop
+          allBombs[i].interactive=true;
+          allBombs[i].cursor = 'pointer';
+        }
+
+        //AllBombsOnPointerDown Call animation
+        { 
+                          {allBombs[0].on('pointerdown', function(){clicked(allBombs[0])})}
+                          {allBombs[1].on('pointerdown', function(){clicked(allBombs[1]) })}
+                          {allBombs[2].on('pointerdown', function(){clicked(allBombs[2]) })}
+                          {allBombs[3].on('pointerdown', function(){clicked(allBombs[3]) })}
+        if(minesToInst>=5){allBombs[4].on('pointerdown', function(){clicked(allBombs[4]) })}     
+        if(minesToInst>=6){allBombs[5].on('pointerdown', function(){clicked(allBombs[5]) })}
+        if(minesToInst>=7){allBombs[6].on('pointerdown', function(){clicked(allBombs[6]) })}
+        if(minesToInst>=8){allBombs[7].on('pointerdown', function(){clicked(allBombs[7]) })}
+        if(minesToInst>=9){allBombs[8].on('pointerdown', function(){clicked(allBombs[8]) })}
+        if(minesToInst>=10){allBombs[9].on('pointerdown', function(){clicked(allBombs[9]) })}
+        }
+
+        //Bomb Animation
+        function clicked(ojeto){
+          ojeto.play();
+            ojeto.onFrameChange = () => {
+
+            if(ojeto.currentFrame  < 36){ 
+              ojeto.scale.x *=0.98;
+              ojeto.scale.y *=0.98; 
+            }else{
+              ojeto.scale.x =1.5;
+              ojeto.scale.y =1.5;
+            }
+            }
+          ojeto.scale.x +=0.1,
+          ojeto.scale.y +=0.1 
+          ojeto.interactive=false;
+          ojeto.onComplete = () => {
+            cleaner(myText);
+            fadeOut(ojeto);
+          }}
+        }
+
+        ///FADE OUT
+      function fadeOut(obj) {
+        this.alpha = 0;
+        const ticker = PIXI.Ticker.shared;
+        const onTick = () => {
+          obj.alpha -= 0.01;
+          obj.scale.x *=0.99;
+          obj.scale.y *=0.99;
+          obj.rotation += 0.02;
+          
+          if (obj.alpha <= 0) {
+            obj.destroy();
+            ticker.remove(onTick);
+          }
+        }
+      ticker.add(onTick)
+      }
+
+        //LISTENER ONCLICK
+      myText.addListener('pointerdown', () => {
+          app.stage.removeChild(myText);
+          generateBombs();
+        });
+      
+      }
+
+  </script>
+</body>
+  </html>
